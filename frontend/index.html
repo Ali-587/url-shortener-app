@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>URL Shortener</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>URL Shortener</h1>
+    <p>Paste a long URL and create a short link.</p>
+
+    <form id="urlForm">
+      <input
+        type="url"
+        id="longUrl"
+        placeholder="https://example.com/very/long/url"
+        required
+      />
+
+      <input
+        type="text"
+        id="customCode"
+        placeholder="Optional custom code"
+      />
+
+      <button type="submit">Shorten URL</button>
+    </form>
+
+    <div id="result"></div>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
