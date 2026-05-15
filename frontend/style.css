@@ -16,12 +16,23 @@ body {
 
 h1 {
   margin-top: 0;
+  margin-bottom: 8px;
+}
+
+p {
+  color: #3f4854;
 }
 
 form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+label {
+  font-weight: 600;
+  color: #222;
 }
 
 input {
@@ -62,4 +73,21 @@ button:hover {
   border: 1px solid #f3a6a6;
   padding: 16px;
   border-radius: 8px;
+}
+
+.success a {
+  display: block;
+  margin: 12px 0;
+  color: #0b57d0;
+  font-weight: 600;
+}
+
+#copyButton {
+  background: #222;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+#copyButton:hover {
+  background: #444;
 }

@@ -24,7 +24,7 @@ jobs:
       - name: Checkout app repo
         uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials using OIDC role
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_APP_ROLE_ARN }}
@@ -64,19 +64,11 @@ jobs:
       - name: Checkout app repo
         uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials using OIDC role
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_APP_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
-
-      - name: Generate frontend config
-        run: |
-          cat > frontend/config.js <<EOF
-          window.APP_CONFIG = {
-            API_BASE_URL: "${{ vars.API_BASE_URL }}"
-          };
-          EOF
 
       - name: Upload frontend to S3
         run: |

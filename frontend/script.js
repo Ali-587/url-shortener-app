@@ -1,7 +1,7 @@
 document.getElementById("urlForm").addEventListener("submit", async function (event) {
   event.preventDefault();
 
-  const longUrl = document.getElementById("longUrl").value;
+  const longUrl = document.getElementById("longUrl").value.trim();
   const customCode = document.getElementById("customCode").value.trim();
   const resultBox = document.getElementById("result");
 
@@ -16,7 +16,7 @@ document.getElementById("urlForm").addEventListener("submit", async function (ev
   }
 
   try {
-    const response = await fetch(`${window.APP_CONFIG.API_BASE_URL}/shorten`, {
+    const response = await fetch("/api/shorten", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -30,12 +30,24 @@ document.getElementById("urlForm").addEventListener("submit", async function (ev
       throw new Error(data.message || "Failed to create short URL");
     }
 
+    /*
+      Backend already returns CloudFront-based shortUrl.
+      If not available for any reason, frontend builds it using current domain.
+    */
+    const shortUrl = data.shortUrl || `${window.location.origin}/api/${data.shortCode}`;
+
     resultBox.innerHTML = `
       <div class="success">
         <p><strong>Short URL created successfully:</strong></p>
-        <a href="${data.shortUrl}" target="_blank">${data.shortUrl}</a>
+        <a href="${shortUrl}" target="_blank" rel="noopener noreferrer">${shortUrl}</a>
+        <button type="button" id="copyButton">Copy</button>
       </div>
     `;
+
+    document.getElementById("copyButton").addEventListener("click", async function () {
+      await navigator.clipboard.writeText(shortUrl);
+      this.textContent = "Copied!";
+    });
   } catch (error) {
     console.error("Frontend error:", error);
 

@@ -55,6 +55,60 @@ function generateShortCode(length = 7) {
   return code;
 }
 
+function getRequestInfo(event) {
+  const method = event.requestContext?.http?.method || event.httpMethod || "GET";
+
+  let path = event.rawPath || event.path || "/";
+
+  /*
+    CloudFront sends API requests as:
+    /api/shorten
+    /api/abc123
+
+    The app logic expects:
+    /shorten
+    /abc123
+
+    So we remove the /api prefix.
+  */
+  path = path.replace(/^\/api/, "");
+
+  if (path === "") {
+    path = "/";
+  }
+
+  return {
+    method,
+    path
+  };
+}
+
+function getCloudFrontBaseUrl(event) {
+  /*
+    When request comes through CloudFront, the Host header is the CloudFront domain.
+    Example:
+    d123456abcdef.cloudfront.net
+
+    We use it to generate short URLs like:
+    https://d123456abcdef.cloudfront.net/api/abc123
+  */
+
+  const headers = event.headers || {};
+  const host = headers.host || headers.Host;
+
+  if (host) {
+    return `https://${host}`;
+  }
+
+  const domainName = event.requestContext?.domainName;
+
+  if (domainName) {
+    return `https://${domainName}`;
+  }
+
+  return "";
+}
+
 async function shortenUrl(event) {
   let body;
 
@@ -84,7 +138,8 @@ async function shortenUrl(event) {
 
   if (!/^[a-zA-Z0-9_-]{3,30}$/.test(shortCode)) {
     return jsonResponse(400, {
-      message: "Short code must be 3-30 characters and contain only letters, numbers, hyphen or underscore"
+      message:
+        "Short code must be 3-30 characters and contain only letters, numbers, hyphen or underscore"
     });
   }
 
@@ -113,16 +168,11 @@ async function shortenUrl(event) {
     throw error;
   }
 
-  const domainName = event.requestContext?.domainName;
-  const stage = event.requestContext?.stage;
+  const publicBaseUrl = getCloudFrontBaseUrl(event);
 
-  let shortUrl;
-
-  if (stage && stage !== "$default") {
-    shortUrl = `https://${domainName}/${stage}/${shortCode}`;
-  } else {
-    shortUrl = `https://${domainName}/${shortCode}`;
-  }
+  const shortUrl = publicBaseUrl
+    ? `${publicBaseUrl}/api/${shortCode}`
+    : `/api/${shortCode}`;
 
   return jsonResponse(201, {
     message: "Short URL created successfully",
@@ -133,8 +183,8 @@ async function shortenUrl(event) {
   });
 }
 
-async function redirectToOriginalUrl(event) {
-  const shortCode = event.pathParameters?.shortCode;
+async function redirectToOriginalUrl(event, path) {
+  const shortCode = path.replace("/", "");
 
   if (!shortCode) {
     return jsonResponse(400, {
@@ -184,8 +234,7 @@ export const handler = async (event) => {
   console.log("Incoming event:", JSON.stringify(event));
 
   try {
-    const method = event.requestContext?.http?.method;
-    const path = event.rawPath;
+    const { method, path } = getRequestInfo(event);
 
     if (method === "OPTIONS") {
       return jsonResponse(200, {
@@ -201,16 +250,22 @@ export const handler = async (event) => {
       return shortenUrl(event);
     }
 
-    if (method === "GET" && event.pathParameters?.shortCode) {
-      return redirectToOriginalUrl(event);
+    if (method === "GET" && path !== "/") {
+      return redirectToOriginalUrl(event, path);
+    }
+
+    if (method === "GET" && path === "/") {
+      return healthCheck();
     }
 
     return jsonResponse(404, {
       message: "Route not found",
+      method,
+      path,
       availableRoutes: [
-        "GET /health",
-        "POST /shorten",
-        "GET /{shortCode}"
+        "GET /api/health",
+        "POST /api/shorten",
+        "GET /api/{shortCode}"
       ]
     });
   } catch (error) {

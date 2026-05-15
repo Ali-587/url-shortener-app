@@ -11,6 +11,7 @@
     <p>Paste a long URL and create a short link.</p>
 
     <form id="urlForm">
+      <label for="longUrl">Long URL</label>
       <input
         type="url"
         id="longUrl"
@@ -18,10 +19,11 @@
         required
       />
 
+      <label for="customCode">Custom code optional</label>
       <input
         type="text"
         id="customCode"
-        placeholder="Optional custom code"
+        placeholder="my-link"
       />
 
       <button type="submit">Shorten URL</button>
@@ -30,7 +32,6 @@
     <div id="result"></div>
   </main>
 
-  <script src="config.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
