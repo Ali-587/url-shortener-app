@@ -34,7 +34,7 @@ document.getElementById("urlForm").addEventListener("submit", async function (ev
       Backend already returns CloudFront-based shortUrl.
       If not available for any reason, frontend builds it using current domain.
     */
-    const shortUrl = data.shortUrl || `${window.location.origin}/api/${data.shortCode}`;
+    const shortUrl = `${window.location.origin}/api/${data.shortCode}`;
 
     resultBox.innerHTML = `
       <div class="success">
